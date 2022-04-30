@@ -1,8 +1,10 @@
 import java.util.ArrayList;
 import java.util.Random;
+import java.awt.*;
 
 public class MainALVQS {
 
+	
 	public static int NCOMP = 0;
 	
 	public static final int NUMELEMENTS = 10000;
@@ -10,8 +12,8 @@ public class MainALVQS {
 	public static final int R = 100000;
 	public static int[] RESRUN = new int[R]; 
 	
-//	public static final int BIN = 500;
-	public static final int BIN = 50;
+	public static final int BIN = 500;
+//	public static final int BIN = 50;
 	
 	
 	public static void mixer(int[] s) {
@@ -81,7 +83,7 @@ public class MainALVQS {
 	}
 	
 
-	public static int[] LVQS(int[] s) {
+	public static int[] LVQuickSortMix(int[] s) {
 		if(s.length <= 1) {
 			return s;
 		}
@@ -93,17 +95,72 @@ public class MainALVQS {
 		var inf = inf(s, piv);
 		var sup = sup(s, piv);
 		
-		return concat(LVQS(inf), piv, LVQS(sup));
+		return concat(LVQuickSortMix(inf), piv, LVQuickSortMix(sup));
 		
 	}
 	
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	  public static void LVQuickSortRandPivot(int[] seq) {
+		  QS(seq,0, seq.length-1);
+	  }
+	  
+	  
+	  public static void QS(int[] sequence, int left, int right) 
+	  {
+	      if (right - left <= 0)
+	          return;
+	      else 
+	      {
+	          Random rand = new Random();
+	          int pivotIndex = left + rand.nextInt(right - left + 1);
+	          swap(sequence, pivotIndex, right);
 
+	          int pivot = sequence[right];
+	          int partition = partitionIt(sequence, left, right, pivot);
+	          QS(sequence, left, partition - 1);
+	          QS(sequence, partition + 1, right);
+	      }
+	  }
+
+	  public static int partitionIt(int[] sequence, int left, int right, long pivot) 
+	  {
+	      int leftPtr = left - 1;
+	      int rightPtr = right;
+	      while (true) 
+	      {
+	    	  
+	          while (sequence[++leftPtr] < pivot)
+	              ;
+	          while (rightPtr > 0 && sequence[--rightPtr] > pivot)
+	          {
+	        	  MainALVQS.NCOMP++;
+	          }
+
+	          if (leftPtr >= rightPtr)
+	              break;
+	          else
+	              swap(sequence, leftPtr, rightPtr);
+	      }
+	      swap(sequence, leftPtr, right);
+	      return leftPtr;
+	  }
+
+	  public static void swap(int[] sequence, int dex1, int dex2) 
+	  {
+	      int temp = sequence[dex1];
+	      sequence[dex1] = sequence[dex2];
+	      sequence[dex2] = temp;
+	  }
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	
 	
 	
 	public static void main(String[] args) {		
+		
+
 		
 		for(int r = 0; r<R; r++) {
 			int[] array = new int[NUMELEMENTS];
@@ -112,11 +169,12 @@ public class MainALVQS {
 			
 			mixer(array);
 			
-			LVQS(array);
+//			LVQS(array);
+			LVQuickSortRandPivot(array);
 			
 
 			
-			RESRUN[r] = NCOMP/10;/////////////////////////////////////////////////////////////////////
+			RESRUN[r] = NCOMP;//10;/////////////////////////////////////////////////////////////////////
 			NCOMP = 0;
 		}		
 		
@@ -126,7 +184,7 @@ public class MainALVQS {
 		
 		
 		//VALORE MEDIO
-		int VMEDIO = 0;
+		long VMEDIO = 0;
 		for(var Xr : RESRUN) {
 			VMEDIO +=Xr;
 		}
@@ -152,7 +210,8 @@ public class MainALVQS {
 		 }
 		 
 		 
-		 int passo = (2*max)/BIN;
+//		 int passo = (2*max)/BIN;
+		 int passo = max/BIN;
 		 		 
 		 
 		 for(var Xr : RESRUN) {
@@ -173,6 +232,8 @@ public class MainALVQS {
 	        StdDraw.text(0.75 , 0, Integer.toString(passo*(3*BIN/4)));
 	        histogram.draw();
 		 
+	        Toolkit.getDefaultToolkit().beep();
+	        
 	}
 
 }
