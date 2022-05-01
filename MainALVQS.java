@@ -5,27 +5,30 @@ import java.awt.*;
 public class MainALVQS {
 
 	
-	public static int NCOMP = 0;
+	public static int NCOMP = 0; //numero confronti per run
 	
-	public static final int NUMELEMENTS = 10000;
+	public static final int NUMELEMENTS = 10000; //dimensione array elementi da ordinare
 	
-	public static final int R = 100000;
+	public static final int R = 100000; //numero di run da effettuare
 	public static int[] RESRUN = new int[R]; 
 	
-	public static final int BIN = 500;
-//	public static final int BIN = 50;
+//	public static final int BIN = 500;
+	public static final int BIN = 50;
 	
-	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	public static void mixer(int[] s) {
+		mixer(s, 0, s.length);
+	}
+
+	public static void mixer(int[] s, int from, int to) {
 		var randomizer = new Random();
-		for(int i = 0; i<s.length ; i++) {
-			var pos = randomizer.nextInt(s.length);
+		for(int i = from; i<=to ; i++) {
+			var pos = from + randomizer.nextInt(to-from) ;
 			var aux = s[i];
 			s[i] = s[pos];
 			s[pos] = aux;
 		}
 	}
-
 	
 	public static int[] convert(Object[] array) {
 		int[] res = new int[array.length];
@@ -83,7 +86,8 @@ public class MainALVQS {
 	}
 	
 
-	public static int[] LVQuickSortMix(int[] s) {
+	//LVqs con chiamata funzione di concat 
+	public static int[] LVQuickSort(int[] s) {
 		if(s.length <= 1) {
 			return s;
 		}
@@ -95,59 +99,49 @@ public class MainALVQS {
 		var inf = inf(s, piv);
 		var sup = sup(s, piv);
 		
-		return concat(LVQuickSortMix(inf), piv, LVQuickSortMix(sup));
+		return concat(LVQuickSort(inf), piv, LVQuickSort(sup));
 		
 	}
 	
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	  public static void LVQuickSortRandPivot(int[] seq) {
+	//LVqs con chiamata funzione di partizionamento su indici
+	public static void LVQuickSort2(int[] seq) {
 		  QS(seq,0, seq.length-1);
 	  }
 	  
 	  
-	  public static void QS(int[] sequence, int left, int right) 
-	  {
-	      if (right - left <= 0)
-	          return;
-	      else 
-	      {
-	          Random rand = new Random();
-	          int pivotIndex = left + rand.nextInt(right - left + 1);
-	          swap(sequence, pivotIndex, right);
+	  public static void QS(int[] seq, int left, int right) {
+	      if (left < right){
+				mixer(seq, left , right);//mischio la sequenda tra left e right
+				int  pivot = seq[right];// pivot = ultimo elemento
+				
+	            int pi = partition(seq, left, right, pivot);//partizionamento QS "classico"
 
-	          int pivot = sequence[right];
-	          int partition = partitionIt(sequence, left, right, pivot);
-	          QS(sequence, left, partition - 1);
-	          QS(sequence, partition + 1, right);
-	      }
+	            QS(seq, left, pi-1);
+	            QS(seq, pi+1, right);
+	        }
 	  }
+	  
 
-	  public static int partitionIt(int[] sequence, int left, int right, long pivot) 
-	  {
-	      int leftPtr = left - 1;
-	      int rightPtr = right;
-	      while (true) 
-	      {
-	    	  
-	          while (sequence[++leftPtr] < pivot)
-	              ;
-	          while (rightPtr > 0 && sequence[--rightPtr] > pivot)
-	          {
-	        	  MainALVQS.NCOMP++;
-	          }
+	  public static int partition(int seq[], int left, int right, int pivot){	
+			int i = left-1; // indice elemento piu piccolo
+	        for (int j=left; j<right; j++){
+	            if (seq[j] <= pivot)
+	            {
+	                i++;
+	                NCOMP++;
+	                swap(seq, i ,j);
+	            }
+	        }
+	  
+	        swap(seq, i+1 ,right);
+	        return i+1;
+		}
+		
 
-	          if (leftPtr >= rightPtr)
-	              break;
-	          else
-	              swap(sequence, leftPtr, rightPtr);
-	      }
-	      swap(sequence, leftPtr, right);
-	      return leftPtr;
-	  }
-
-	  public static void swap(int[] sequence, int dex1, int dex2) 
-	  {
+		
+	  public static void swap(int[] sequence, int dex1, int dex2) {
 	      int temp = sequence[dex1];
 	      sequence[dex1] = sequence[dex2];
 	      sequence[dex2] = temp;
@@ -164,23 +158,22 @@ public class MainALVQS {
 		
 		for(int r = 0; r<R; r++) {
 			int[] array = new int[NUMELEMENTS];
+			var rand = new Random();
+			for(int i = 0; i < NUMELEMENTS; i++) array[i] = rand.nextInt(NUMELEMENTS);
 			
-			for(int i = 0; i < NUMELEMENTS; i++) array[i] = i;
 			
-			mixer(array);
-			
-//			LVQS(array);
-			LVQuickSortRandPivot(array);
-			
+//			LVQuickSort(array); 			//valore medio dei confronti  (circa)= 10nLog(n) ; (circa)= 400k
+			LVQuickSort2(array);				//valore medio dei confronti (circa)= 2nLog(n) ; (circa)=80k
 
 			
-			RESRUN[r] = NCOMP;//10;/////////////////////////////////////////////////////////////////////
+			RESRUN[r] = NCOMP;
 			NCOMP = 0;
 		}		
 		
-		
+
 		for(var t: RESRUN) System.out.print(t + " ");
 		System.out.println();
+
 		
 		
 		//VALORE MEDIO
@@ -202,7 +195,7 @@ public class MainALVQS {
 		System.out.println(VAR);
 
 		
-		//costruzione istogramma
+		//////////////////////////////////////////////////////////////////////////////////////////////////////costruzione istogramma
 		 Histogram histogram = new Histogram(BIN);
 		 int max = 0;
 		 for(var Xr:RESRUN) {
@@ -210,7 +203,6 @@ public class MainALVQS {
 		 }
 		 
 		 
-//		 int passo = (2*max)/BIN;
 		 int passo = max/BIN;
 		 		 
 		 
@@ -222,6 +214,8 @@ public class MainALVQS {
 				 }
 			 }
 		 }
+		 
+		 
 		 
 	        StdDraw.setCanvasSize(1000, 400);
 
